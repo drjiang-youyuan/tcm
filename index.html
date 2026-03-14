@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>鸿儒中医 · 体质辨识 HongRu TCM Constitution Assessment</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg: #faf9f6;
+    --card: #ffffff;
+    --primary: #2d6a4f;
+    --primary-light: #d8f3dc;
+    --accent: #c17f59;
+    --accent-light: #fde8d0;
+    --text: #1b1b1b;
+    --text-light: #6b7280;
+    --border: #e5e5e5;
+    --error: #dc2626;
+    --error-light: #fef2f2;
+    --shadow: 0 2px 16px rgba(0,0,0,0.05);
+    --radius: 14px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+    padding-bottom: env(safe-area-inset-bottom, 20px);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    background: linear-gradient(160deg, #1b4332 0%, #2d6a4f 50%, #52796f 100%);
+    color: white; padding: 32px 24px 28px; text-align: center; position: relative; overflow: hidden;
+  }
+  .header::before {
+    content: ''; position: absolute; top: -40px; right: -40px; width: 120px; height: 120px;
+    background: rgba(255,255,255,0.06); border-radius: 50%;
+  }
+  .header::after {
+    content: ''; position: absolute; bottom: -60px; left: -30px; width: 160px; height: 160px;
+    background: rgba(255,255,255,0.04); border-radius: 50%;
+  }
+  .header .logo { font-size: 36px; margin-bottom: 6px; }
+  .header h1 { font-size: 24px; font-weight: 700; letter-spacing: 1px; }
+  .header .subtitle { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+  .header .badge {
+    display: inline-block; margin-top: 12px; padding: 4px 14px; background: rgba(255,255,255,0.15);
+    border-radius: 20px; font-size: 11px; letter-spacing: 0.5px; backdrop-filter: blur(4px);
+  }
+
+  /* ===== PROGRESS ===== */
+  .progress-wrap {
+    position: sticky; top: 0; z-index: 100; background: var(--card);
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .progress-bar { height: 8px; background: #e8e8e8; border-radius: 4px; overflow: hidden; }
+  .progress-fill {
+    height: 100%; border-radius: 4px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    background: linear-gradient(90deg, #2d6a4f, #52b788, #c17f59);
+    background-size: 200% 100%; animation: shimmer 2s linear infinite;
+  }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  .progress-info { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+  .progress-label { font-size: 13px; color: var(--text-light); }
+  .progress-emoji { font-size: 18px; transition: all 0.3s; }
+  .progress-count { font-size: 13px; font-weight: 600; color: var(--primary); }
+
+  /* ===== INTRO CARD ===== */
+  .intro { padding: 16px; }
+  .intro-card {
+    background: var(--card); border-radius: var(--radius); padding: 20px;
+    box-shadow: var(--shadow); border-left: 4px solid var(--accent);
+  }
+  .intro-card p { font-size: 13.5px; color: var(--text-light); line-height: 1.8; }
+  .intro-card .highlight { color: var(--primary); font-weight: 600; }
+  .intro-card .time { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 13px; color: var(--accent); font-weight: 500; }
+
+  /* ===== SECTION DIVIDER ===== */
+  .section-divider {
+    display: flex; align-items: center; gap: 10px; padding: 20px 16px 10px;
+  }
+  .section-icon {
+    width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center;
+    justify-content: center; font-size: 20px; flex-shrink: 0;
+  }
+  .section-label h3 { font-size: 15px; font-weight: 600; color: var(--text); }
+  .section-label p { font-size: 12px; color: var(--text-light); }
+  .section-progress { margin-left: auto; font-size: 12px; color: var(--text-light); font-weight: 500; }
+
+  /* ===== QUESTION CARD ===== */
+  .q-card {
+    background: var(--card); border-radius: var(--radius); padding: 18px;
+    margin: 0 16px 10px; box-shadow: var(--shadow);
+    border: 1.5px solid transparent; transition: all 0.3s;
+  }
+  .q-card.answered { border-color: var(--primary-light); }
+  .q-card.answered .q-status { opacity: 1; }
+  .q-card.focused { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light), var(--shadow); }
+  .q-card.focused .q-num { color: var(--accent); }
+  .q-card.error {
+    border-color: var(--error); background: var(--error-light);
+    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97);
+  }
+  @keyframes shake {
+    10%,90%{transform:translateX(-2px)} 20%,80%{transform:translateX(4px)}
+    30%,50%,70%{transform:translateX(-6px)} 40%,60%{transform:translateX(6px)}
+  }
+  .q-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .q-num { font-size: 11px; color: var(--primary); font-weight: 700; letter-spacing: 0.5px; }
+  .q-status { font-size: 14px; opacity: 0; transition: opacity 0.3s; }
+  .q-text { font-size: 15px; font-weight: 500; line-height: 1.5; margin-bottom: 3px; }
+  .q-text-en { font-size: 12.5px; color: var(--text-light); margin-bottom: 10px; }
+  .q-note { font-size: 11px; color: var(--accent); margin-bottom: 8px; font-style: italic; }
+  .error-hint { font-size: 12px; color: var(--error); margin-top: 8px; display: none; }
+  .q-card.error .error-hint { display: block; }
+
+  /* ===== OPTIONS ===== */
+  .options { display: flex; gap: 6px; }
+  .opt-btn {
+    flex: 1; text-align: center; padding: 10px 2px; border: 2px solid #eee;
+    border-radius: 10px; cursor: pointer; transition: all 0.25s; background: #fafafa;
+    -webkit-tap-highlight-color: transparent; position: relative; overflow: hidden;
+  }
+  .opt-btn::after {
+    content: ''; position: absolute; inset: 0; background: var(--primary);
+    opacity: 0; transition: opacity 0.25s; border-radius: 8px;
+  }
+  .opt-btn:active { transform: scale(0.93); }
+  .opt-btn .num { font-size: 18px; font-weight: 700; color: var(--text); display: block; position: relative; z-index: 1; }
+  .opt-btn .label { font-size: 9.5px; color: var(--text-light); display: block; margin-top: 1px; position: relative; z-index: 1; }
+  .opt-btn.selected { border-color: var(--primary); background: var(--primary-light); }
+  .opt-btn.selected .num { color: var(--primary); }
+
+  /* ===== GENDER ===== */
+  .gender-section { padding: 20px 16px; }
+  .gender-card {
+    background: var(--card); border-radius: var(--radius); padding: 28px 24px;
+    box-shadow: var(--shadow); text-align: center;
+  }
+  .gender-card .icon { font-size: 40px; margin-bottom: 12px; }
+  .gender-card h3 { font-size: 18px; margin-bottom: 4px; }
+  .gender-card p { font-size: 13px; color: var(--text-light); margin-bottom: 20px; }
+  .gender-btns { display: flex; gap: 12px; }
+  .gender-btn {
+    flex: 1; padding: 16px; border: 2px solid var(--border); border-radius: 12px;
+    font-size: 18px; cursor: pointer; background: var(--card); transition: all 0.25s;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .gender-btn span { font-size: 13px; color: var(--text-light); }
+  .gender-btn:active { transform: scale(0.96); }
+  .gender-btn.selected { border-color: var(--primary); background: var(--primary-light); }
+
+  /* ===== SUBMIT ===== */
+  .submit-wrap { padding: 24px 16px 40px; }
+  .submit-btn {
+    width: 100%; padding: 16px; border: none; border-radius: var(--radius);
+    background: linear-gradient(135deg, #1b4332, #2d6a4f);
+    color: white; font-size: 17px; font-weight: 600; cursor: pointer;
+    transition: all 0.25s; position: relative; overflow: hidden;
+  }
+  .submit-btn:active { transform: scale(0.98); }
+  .submit-btn .arrow { display: inline-block; margin-left: 8px; transition: transform 0.3s; }
+  .submit-btn:hover .arrow { transform: translateX(4px); }
+  .unanswered-hint {
+    text-align: center; margin-top: 12px; font-size: 13px; color: var(--error);
+    display: none; animation: fadeIn 0.3s;
+  }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+
+  /* ===== RESULTS ===== */
+  .results { display: none; }
+  .result-hero {
+    background: linear-gradient(160deg, #1b4332, #2d6a4f, #52796f);
+    color: white; padding: 40px 24px; text-align: center;
+  }
+  .result-hero .big-emoji { font-size: 64px; margin-bottom: 12px; animation: pop 0.6s cubic-bezier(0.68,-0.55,0.265,1.55); }
+  @keyframes pop { 0%{transform:scale(0)} 100%{transform:scale(1)} }
+  .result-hero h2 { font-size: 28px; font-weight: 700; }
+  .result-hero .type-en { font-size: 15px; opacity: 0.8; margin-top: 4px; }
+  .result-hero .desc { font-size: 14px; opacity: 0.9; margin-top: 14px; line-height: 1.7; max-width: 320px; margin-inline: auto; }
+
+  .result-body { padding: 16px; }
+
+  .r-card {
+    background: var(--card); border-radius: var(--radius); padding: 20px;
+    margin-bottom: 12px; box-shadow: var(--shadow);
+  }
+  .r-card h3 { font-size: 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .r-card h3 .icon { font-size: 20px; }
+
+  /* Score bars */
+  .score-row { display: flex; align-items: center; margin-bottom: 10px; }
+  .score-label { width: 56px; font-size: 12.5px; font-weight: 600; flex-shrink: 0; }
+  .score-bar-bg { flex: 1; height: 22px; background: #f0f0f0; border-radius: 11px; overflow: hidden; margin: 0 8px; position: relative; }
+  .score-bar-fg { height: 100%; border-radius: 11px; transition: width 1s cubic-bezier(0.4,0,0.2,1); position: relative; }
+  .score-val { width: 36px; text-align: right; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+  .score-tag {
+    font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 600;
+    white-space: nowrap; margin-left: 4px; min-width: 36px; text-align: center;
+  }
+  .tag-yes { background: #fecaca; color: #991b1b; }
+  .tag-tend { background: #fef3c7; color: #92400e; }
+  .tag-no { background: #d1fae5; color: #065f46; }
+
+  /* ===== SERVICE FUNNEL ===== */
+  .funnel { padding: 0 16px 20px; }
+  .funnel-title { font-size: 16px; font-weight: 600; text-align: center; margin-bottom: 16px; color: var(--text); }
+
+  .service-card {
+    background: var(--card); border-radius: var(--radius); padding: 20px;
+    margin-bottom: 12px; box-shadow: var(--shadow); border: 1.5px solid var(--border);
+    cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden;
+  }
+  .service-card:active { transform: scale(0.98); }
+  .service-card.featured { border-color: var(--accent); }
+  .service-card.featured::before {
+    content: '推荐 HOT'; position: absolute; top: 12px; right: -28px;
+    background: var(--accent); color: white; font-size: 10px; font-weight: 700;
+    padding: 3px 32px; transform: rotate(35deg); letter-spacing: 0.5px;
+  }
+  .service-card .s-icon { font-size: 28px; margin-bottom: 8px; }
+  .service-card h4 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .service-card p { font-size: 12.5px; color: var(--text-light); line-height: 1.6; }
+  .service-card .price {
+    display: inline-block; margin-top: 10px; padding: 4px 14px;
+    background: var(--primary-light); color: var(--primary); border-radius: 8px;
+    font-size: 13px; font-weight: 600;
+  }
+  .service-card .free-tag {
+    display: inline-block; margin-top: 10px; padding: 4px 14px;
+    background: #dbeafe; color: #1e40af; border-radius: 8px;
+    font-size: 13px; font-weight: 600;
+  }
+
+  .contact-bar {
+    background: var(--card); border-radius: var(--radius); padding: 16px 20px;
+    margin: 12px 16px; box-shadow: var(--shadow); text-align: center;
+  }
+  .contact-bar p { font-size: 13px; color: var(--text-light); margin-bottom: 10px; }
+  .contact-links { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+  .contact-link {
+    padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    text-decoration: none; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .contact-link.tg { background: #e3f2fd; color: #1565c0; }
+  .contact-link.wa { background: #e8f5e9; color: #2e7d32; }
+  .contact-link.web { background: #f3e5f5; color: #7b1fa2; }
+
+  .disclaimer {
+    font-size: 11px; color: var(--text-light); text-align: center;
+    padding: 20px 16px; line-height: 1.7; border-top: 1px solid var(--border); margin-top: 12px;
+  }
+
+  .hidden { display: none !important; }
+
+  /* ===== BRAND ELEMENTS ===== */
+  .brand-name { font-family: "STKaiti", "KaiTi", "楷体", serif; }
+  .brand-watermark {
+    position: fixed; bottom: 16px; right: 16px; font-size: 10px; color: rgba(45,106,79,0.15);
+    font-family: "STKaiti", "KaiTi", serif; letter-spacing: 2px; z-index: 50; pointer-events: none;
+    writing-mode: vertical-rl;
+  }
+  .brand-seal {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 48px; height: 48px; border: 2px solid rgba(255,255,255,0.4);
+    border-radius: 8px; font-family: "STKaiti","KaiTi",serif;
+    font-size: 20px; font-weight: 700; letter-spacing: 2px; line-height: 1.1;
+    color: rgba(255,255,255,0.9); transform: rotate(-5deg); margin-bottom: 10px;
+  }
+  .result-brand-bar {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 8px 0; margin-top: 16px; opacity: 0.7; font-size: 12px;
+  }
+  .result-brand-bar .line { flex: 1; max-width: 40px; height: 1px; background: rgba(255,255,255,0.4); }
+  .report-header {
+    display: flex; align-items: center; gap: 10px; padding-bottom: 12px;
+    margin-bottom: 14px; border-bottom: 1px solid var(--border);
+  }
+  .report-header .rh-seal {
+    width: 36px; height: 36px; border: 1.5px solid var(--primary); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: "STKaiti","KaiTi",serif; font-size: 14px; font-weight: 700;
+    color: var(--primary); transform: rotate(-5deg); flex-shrink: 0; line-height: 1.1;
+  }
+  .report-header .rh-text h3 { font-size: 15px; color: var(--primary); margin: 0; }
+  .report-header .rh-text p { font-size: 11px; color: var(--text-light); margin: 0; }
+
+  .kbd-hint {
+    display: flex; align-items: center; gap: 6px; margin-top: 10px;
+    padding: 8px 12px; background: #f0fdf4; border-radius: 8px; font-size: 12px; color: var(--primary);
+  }
+  .kbd-hint kbd {
+    display: inline-block; padding: 2px 7px; background: white; border: 1px solid #ccc;
+    border-radius: 4px; font-family: monospace; font-size: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="header">
+    <div class="brand-seal">鸿儒</div>
+    <h1><span class="brand-name">鸿儒中医</span> · 体质辨识</h1>
+    <div class="subtitle">HongRu TCM · Constitution Assessment</div>
+    <div class="badge">📋 GB/T 46939—2025 国家标准 · 鸿儒中医出品</div>
+  </div>
+
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-info">
+      <span class="progress-label" id="progressLabel">请先选择性别</span>
+      <span class="progress-emoji" id="progressEmoji">🌱</span>
+      <span class="progress-count" id="progressCount">0/29</span>
+    </div>
+  </div>
+
+  <div class="gender-section" id="genderSection">
+    <div class="gender-card">
+      <div class="icon">👤</div>
+      <h3>欢迎来到鸿儒中医体质辨识</h3>
+      <p>Welcome to HongRu TCM Assessment · Please select your gender to begin</p>
+      <div class="gender-btns">
+        <div class="gender-btn" onclick="selectGender('male', this)">♂<span>男 Male</span></div>
+        <div class="gender-btn" onclick="selectGender('female', this)">♀<span>女 Female</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="questionnaire" class="hidden"></div>
+  <div class="submit-wrap hidden" id="submitWrap">
+    <button class="submit-btn" onclick="handleSubmit()">查看鸿儒中医体质报告 <span class="arrow">→</span></button>
+    <div class="unanswered-hint" id="unansweredHint"></div>
+  </div>
+  <div class="results" id="results"></div>
+  <div class="brand-watermark">鸿儒中医 HongRu TCM</div>
+</div>
+
+<script>
+const DATA = {
+  sections: [
+    { id:"pinghe", name:"平和质", nameEn:"Balanced", icon:"☯️", color:"#2d6a4f",
+      desc:"阴阳气血调和，体态适中、面色红润、精力充沛", descEn:"Balanced constitution with good energy and adaptability",
+      advice:"保持均衡饮食和规律作息，适量运动，维持良好的生活习惯即可。",
+      items:[
+        {q:"您精力充沛吗？",en:"Do you feel energetic?",r:false},
+        {q:"您容易疲乏吗？",en:"Do you get tired easily?",r:true},
+        {q:"您感到闷闷不乐、情绪低沉吗？",en:"Do you feel gloomy or depressed?",r:true},
+        {q:"您比一般人耐受不了寒冷（冬天的寒冷，夏天的冷空调、电扇等）吗？",en:"Are you more intolerant to cold than others?",r:true},
+    ]},
+    { id:"qixu", name:"气虚质", nameEn:"Qi Deficiency", icon:"💨", color:"#5b9bd5",
+      desc:"元气不足，容易疲乏、气短、自汗", descEn:"Insufficient vital energy, prone to fatigue and shortness of breath",
+      advice:"宜食山药、红枣、小米等补气食材；避免过度劳累；推荐太极拳、八段锦等柔和运动。",
+      items:[
+        {q:"您容易疲乏吗？",en:"Do you get tired easily?",r:false},
+        {q:"您容易气短（呼吸短促，接不上气）吗？",en:"Do you easily feel short of breath?",r:false},
+        {q:"您容易心慌吗？",en:"Do you easily feel palpitations?",r:false},
+    ]},
+    { id:"yangxu", name:"阳虚质", nameEn:"Yang Deficiency", icon:"❄️", color:"#4472c4",
+      desc:"阳气不足，畏寒怕冷、手足不温", descEn:"Insufficient yang energy, fear of cold, cold extremities",
+      advice:"宜食羊肉、生姜、桂圆等温阳食材；注意腰腹和足部保暖；忌食生冷寒凉之物。",
+      items:[
+        {q:"您胃脘部、背部或腰膝部怕冷吗？",en:"Do you feel cold in your stomach, back, or knees?",r:false},
+        {q:"您感到怕冷、衣服比别人穿得多吗？",en:"Do you feel cold and wear more than others?",r:false},
+        {q:"您比一般人耐受不了寒冷（冬天的寒冷，夏天的冷空调、电扇等）吗？",en:"Are you more intolerant to cold than others?",r:false},
+    ]},
+    { id:"yinxu", name:"阴虚质", nameEn:"Yin Deficiency", icon:"🔥", color:"#ed7d31",
+      desc:"阴液亏少，口燥咽干、手足心热", descEn:"Insufficient yin fluid, dry mouth, warm palms and soles",
+      advice:"宜食银耳、百合、鸭肉等滋阴食材；避免熬夜；忌食辛辣燥热之物。",
+      items:[
+        {q:"您感觉身体、脸上发热吗？",en:"Do you feel heat in your body or face?",r:false},
+        {q:"您皮肤或口唇干吗？",en:"Is your skin or lips dry?",r:false},
+        {q:"您面部两颧潮红或偏红吗？",en:"Are your cheeks flushed or reddish?",r:false},
+    ]},
+    { id:"tanshi", name:"痰湿质", nameEn:"Phlegm-Dampness", icon:"💧", color:"#7c878e",
+      desc:"痰湿凝聚，形体肥胖、腹部肥满、口黏苔腻", descEn:"Phlegm-dampness accumulation, obesity, sticky mouth",
+      advice:"宜食薏仁、冬瓜、赤小豆等祛湿食材；坚持有氧运动；少食甜腻油炸。",
+      items:[
+        {q:"您感到身体沉重不轻松或不爽快吗？",en:"Does your body feel heavy or uncomfortable?",r:false},
+        {q:"您腹部肥满松软吗？",en:"Is your abdomen soft and plump?",r:false},
+        {q:"您嘴里有黏黏的感觉吗？",en:"Does your mouth feel sticky?",r:false},
+    ]},
+    { id:"shire", name:"湿热质", nameEn:"Damp-Heat", icon:"🌡️", color:"#c0392b",
+      desc:"湿热内蕴，面垢油光、口苦、苔黄腻", descEn:"Internal damp-heat, oily face, bitter taste",
+      advice:"宜食绿豆、苦瓜、莲子等清热利湿食材；忌食辛辣油腻和烟酒。",
+      items:[
+        {q:"您面部或鼻部有油腻感或者油亮发光吗？",en:"Does your face or nose feel oily?",r:false},
+        {q:"您小便时尿道有发热感、尿色浓（深）吗？",en:"Do you feel heat when urinating or is urine dark?",r:false},
+        {q:"您带下色黄（白带颜色发黄）吗？",en:"Is your vaginal discharge yellowish?",g:"female",r:false},
+        {q:"您的阴囊部位潮湿吗？",en:"Does your scrotum feel damp?",g:"male",r:false},
+    ]},
+    { id:"xueyu", name:"血瘀质", nameEn:"Blood Stasis", icon:"🩸", color:"#8e44ad",
+      desc:"血行不畅，肤色晦暗、舌质紫暗", descEn:"Poor blood flow, dull complexion, dark tongue",
+      advice:"宜食山楂、黑木耳、醋等活血食材；坚持适度运动促进血液循环。",
+      items:[
+        {q:"您身体上有哪里疼痛吗？",en:"Do you experience pain anywhere?",r:false},
+        {q:"您面色晦暗或容易出现褐斑吗？",en:"Is your complexion dull or do you have dark spots?",r:false},
+        {q:"您口唇颜色偏暗吗？",en:"Are your lips dark-colored?",r:false},
+    ]},
+    { id:"qiyu", name:"气郁质", nameEn:"Qi Stagnation", icon:"🌫️", color:"#34495e",
+      desc:"气机郁滞，神情抑郁、忧虑脆弱", descEn:"Qi stagnation, depression, anxiety, emotional fragility",
+      advice:"宜食玫瑰花茶、佛手、柑橘等理气食材；多参加社交和户外活动；学会情绪疏导。",
+      items:[
+        {q:"您感到闷闷不乐、情绪低沉吗？",en:"Do you feel gloomy or depressed?",r:false},
+        {q:"您容易精神紧张、焦虑不安吗？",en:"Do you easily feel nervous or anxious?",r:false},
+        {q:"您多愁善感、感情脆弱吗？",en:"Are you sentimental or emotionally fragile?",r:false},
+    ]},
+    { id:"tebing", name:"特禀质", nameEn:"Allergic", icon:"🤧", color:"#e67e22",
+      desc:"禀赋不耐，容易过敏", descEn:"Innate intolerance, allergy prone",
+      advice:"注意避开已知过敏原；换季时加强防护；宜食灵芝、蜂蜜等增强体质的食材。",
+      items:[
+        {q:"您没有感冒时也会打喷嚏吗？",en:"Do you sneeze even without a cold?",r:false},
+        {q:"您容易过敏（对药物、食物、气味、花粉或在季节交替、气候变化时）吗？",en:"Are you prone to allergies?",r:false},
+        {q:"您的皮肤容易起荨麻疹（风团、风疹块、风疙瘩）吗？",en:"Does your skin easily develop hives?",r:false},
+        {q:"您的皮肤一抓就红，并出现抓痕吗？",en:"Does your skin turn red and show scratch marks easily?",r:false},
+    ]},
+  ]
+};
+
+const LABELS = [{s:1,zh:"没有",en:"No"},{s:2,zh:"很少",en:"Rare"},{s:3,zh:"有时",en:"Some"},{s:4,zh:"经常",en:"Often"},{s:5,zh:"总是",en:"Always"}];
+const GROUPS = [
+  {ids:["pinghe"],label:"第1组 · 基础状态",en:"Basic Status",icon:"📋",bg:"#d8f3dc"},
+  {ids:["qixu","yangxu","yinxu"],label:"第2组 · 虚性体质",en:"Deficiency Patterns",icon:"🌿",bg:"#dbeafe"},
+  {ids:["tanshi","shire","xueyu"],label:"第3组 · 实性体质",en:"Excess Patterns",icon:"⚡",bg:"#fef3c7"},
+  {ids:["qiyu","tebing"],label:"第4组 · 情志过敏",en:"Emotional & Allergic",icon:"🧘",bg:"#ede9fe"},
+];
+const EMOJIS = ['🌱','🌿','🍀','🌳','🌲','🎋','🎍','🌴','🎄','🌺'];
+
+let gender=null, answers={}, totalQ=0, allQKeys=[], focusIdx=0;
+
+function selectGender(g, el) {
+  gender = g;
+  document.querySelectorAll('.gender-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  setTimeout(()=>{
+    document.getElementById('genderSection').classList.add('hidden');
+    renderQ();
+    document.getElementById('questionnaire').classList.remove('hidden');
+    document.getElementById('submitWrap').classList.remove('hidden');
+    updateProgress();
+  }, 300);
+}
+
+function renderQ() {
+  const wrap = document.getElementById('questionnaire');
+  let html = '', qIdx = 0, gIdx = 0;
+  allQKeys = [];
+
+  for (const sec of DATA.sections) {
+    const grp = GROUPS[gIdx];
+    if (grp && grp.ids[0] === sec.id) {
+      html += `<div class="section-divider"><div class="section-icon" style="background:${grp.bg}">${grp.icon}</div><div class="section-label"><h3>${grp.label}</h3><p>${grp.en}</p></div></div>`;
+      gIdx++;
+    }
+
+    for (let i = 0; i < sec.items.length; i++) {
+      const item = sec.items[i];
+      if (item.g && item.g !== gender) continue;
+      qIdx++;
+      const key = sec.id+'_'+i;
+      allQKeys.push(key);
+      const note = item.r ? '<div class="q-note">★ 逆向计分 Reverse scoring</div>' : '';
+      const gNote = item.g ? `<div class="q-note">${item.g==='female'?'♀ 仅女性 Female only':'♂ 仅男性 Male only'}</div>` : '';
+
+      html += `<div class="q-card" id="card_${key}" data-idx="${qIdx-1}" onclick="focusQuestion(${qIdx-1})">
+        <div class="q-top"><span class="q-num">Q${qIdx} · ${sec.name}</span><span class="q-status">✓</span></div>
+        <div class="q-text">${item.q}</div>
+        <div class="q-text-en">${item.en}</div>
+        ${note}${gNote}
+        <div class="options">${LABELS.map(lb=>`<div class="opt-btn" onclick="ans('${key}',${lb.s},this)"><span class="num">${lb.s}</span><span class="label">${lb.zh}</span></div>`).join('')}</div>
+        <div class="error-hint">⬆ 请选择一个选项 Please select an option</div>
+      </div>`;
+    }
+  }
+
+  const kbdHint = window.matchMedia('(pointer:fine)').matches
+    ? `<div class="kbd-hint">⌨️ 电脑用户提示：按键盘 <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd><kbd>5</kbd> 可快速作答，自动跳转下一题</div>`
+    : `<div class="kbd-hint">💡 提示：点击选项后会自动跳到下一题</div>`;
+
+  wrap.innerHTML = `<div class="intro"><div class="intro-card"><p><strong class="brand-name">鸿儒中医</strong>提醒您：请根据您<span class="highlight">近一年</span>的真实体验和感觉作答。每题选择最符合的数字，<span class="highlight">1=没有，5=总是</span>。本测评严格遵循国家标准，结果科学可信。</p><div class="time">⏱ 约3-5分钟 · 鸿儒中医为您的健康护航</div>${kbdHint}</div></div>` + html;
+  totalQ = qIdx;
+  focusIdx = 0;
+  setTimeout(() => focusQuestion(0), 400);
+}
+
+function ans(key, score, el) {
+  answers[key] = score;
+  const card = document.getElementById('card_'+key);
+  card.classList.add('answered');
+  card.classList.remove('error');
+  card.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  updateProgress();
+
+  // Auto-advance to next unanswered question
+  const currentIdx = allQKeys.indexOf(key);
+  let nextIdx = -1;
+
+  // First try: find next unanswered after current
+  for (let i = currentIdx + 1; i < allQKeys.length; i++) {
+    if (!(allQKeys[i] in answers)) { nextIdx = i; break; }
+  }
+  // Fallback: find any unanswered before current
+  if (nextIdx === -1) {
+    for (let i = 0; i < currentIdx; i++) {
+      if (!(allQKeys[i] in answers)) { nextIdx = i; break; }
+    }
+  }
+
+  if (nextIdx !== -1) {
+    setTimeout(() => focusQuestion(nextIdx), 250);
+  } else if (Object.keys(answers).length === totalQ) {
+    // All answered, scroll to submit
+    setTimeout(() => {
+      document.getElementById('submitWrap').scrollIntoView({ behavior:'smooth', block:'center' });
+    }, 300);
+  }
+}
+
+function focusQuestion(idx) {
+  if (idx < 0 || idx >= allQKeys.length) return;
+  focusIdx = idx;
+  // Remove focus from all
+  document.querySelectorAll('.q-card.focused').forEach(c => c.classList.remove('focused'));
+  // Add focus to target
+  const card = document.getElementById('card_' + allQKeys[idx]);
+  if (card) {
+    card.classList.add('focused');
+    card.scrollIntoView({ behavior:'smooth', block:'center' });
+  }
+}
+
+// Keyboard support: press 1-5 to answer focused question
+document.addEventListener('keydown', function(e) {
+  // Only work when questionnaire is visible
+  if (document.getElementById('questionnaire').classList.contains('hidden')) return;
+  // Only work when results not shown
+  if (document.getElementById('results').style.display === 'block') return;
+
+  const num = parseInt(e.key);
+  if (num >= 1 && num <= 5) {
+    e.preventDefault();
+    const key = allQKeys[focusIdx];
+    if (!key) return;
+    const card = document.getElementById('card_' + key);
+    if (!card) return;
+    const btns = card.querySelectorAll('.opt-btn');
+    if (btns[num - 1]) {
+      ans(key, num, btns[num - 1]);
+    }
+  }
+  // Arrow keys to navigate questions
+  if (e.key === 'ArrowDown' || e.key === 'j') {
+    e.preventDefault();
+    if (focusIdx < allQKeys.length - 1) focusQuestion(focusIdx + 1);
+  }
+  if (e.key === 'ArrowUp' || e.key === 'k') {
+    e.preventDefault();
+    if (focusIdx > 0) focusQuestion(focusIdx - 1);
+  }
+  // Enter to submit
+  if (e.key === 'Enter' && Object.keys(answers).length === totalQ) {
+    e.preventDefault();
+    handleSubmit();
+  }
+});
+
+function updateProgress() {
+  const n = Object.keys(answers).length;
+  const pct = totalQ>0 ? Math.round(n/totalQ*100) : 0;
+  document.getElementById('progressFill').style.width = pct+'%';
+  document.getElementById('progressCount').textContent = `${n}/${totalQ}`;
+  const eidx = Math.min(Math.floor(pct/10), EMOJIS.length-1);
+  document.getElementById('progressEmoji').textContent = EMOJIS[eidx];
+  document.getElementById('progressLabel').textContent = n===totalQ ? '全部完成！点击下方提交 ✨' : `已完成 ${pct}%`;
+}
+
+// ===== IMPROVEMENT 1: Highlight unanswered on submit =====
+function handleSubmit() {
+  // Collect all question keys
+  const allKeys = [];
+  for (const sec of DATA.sections) {
+    sec.items.forEach((item, i) => {
+      if (item.g && item.g !== gender) return;
+      allKeys.push(sec.id+'_'+i);
+    });
+  }
+
+  const missing = allKeys.filter(k => !(k in answers));
+
+  if (missing.length > 0) {
+    // Clear previous errors
+    document.querySelectorAll('.q-card.error').forEach(c => c.classList.remove('error'));
+
+    // Mark unanswered cards
+    missing.forEach(k => {
+      const card = document.getElementById('card_'+k);
+      if (card) card.classList.add('error');
+    });
+
+    // Show hint
+    const hint = document.getElementById('unansweredHint');
+    hint.textContent = `还有 ${missing.length} 题未回答，已用红色标出 ↑`;
+    hint.style.display = 'block';
+
+    // Scroll to first unanswered
+    const firstMissing = document.getElementById('card_'+missing[0]);
+    if (firstMissing) {
+      firstMissing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return;
+  }
+
+  document.getElementById('unansweredHint').style.display = 'none';
+  calculateResults();
+}
+
+function calculateResults() {
+  const results = [];
+  for (const sec of DATA.sections) {
+    let raw=0, cnt=0;
+    sec.items.forEach((item,i) => {
+      if (item.g && item.g !== gender) return;
+      let v = answers[sec.id+'_'+i] || 3;
+      if (item.r) v = 6-v;
+      raw += v; cnt++;
+    });
+    const tf = Math.round(((raw-cnt)/(cnt*4))*1000)/10;
+    results.push({...sec, raw, cnt, tf});
+  }
+
+  const ph = results[0], bias = results.slice(1);
+  const a30 = bias.every(r=>r.tf<30), a40 = bias.every(r=>r.tf<40);
+  ph.result = ph.tf>=60&&a30 ? "是" : ph.tf>=60&&a40 ? "基本是" : "否";
+  for (const r of bias) r.result = r.tf>=40?"是":r.tf>=30?"倾向是":"否";
+
+  const pos = bias.filter(r=>r.result==="是").sort((a,b)=>b.tf-a.tf);
+  const tend = bias.filter(r=>r.result==="倾向是").sort((a,b)=>b.tf-a.tf);
+  showResults(results, ph, pos, tend);
+}
+
+function showResults(results, ph, pos, tend) {
+  document.getElementById('questionnaire').classList.add('hidden');
+  document.getElementById('submitWrap').classList.add('hidden');
+  document.getElementById('progressWrap').classList.add('hidden');
+
+  let primary, pInfo;
+  if (ph.result==="是"||ph.result==="基本是") { pInfo=ph; primary=(ph.result==="是"?"":"基本")+"\u5e73\u548c\u8d28"; }
+  else if (pos.length>0) { pInfo=pos[0]; primary=pos[0].name; }
+  else if (tend.length>0) { pInfo=tend[0]; primary=tend[0].name+"（倾向）"; }
+  else { pInfo=ph; primary="\u5e73\u548c\u8d28"; }
+
+  let h = `<div class="result-hero">
+    <div class="big-emoji">${pInfo.icon}</div>
+    <h2>${primary}</h2>
+    <div class="type-en">${pInfo.nameEn}</div>
+    <div class="desc">${pInfo.desc}</div>
+    <div class="result-brand-bar"><span class="line"></span><span class="brand-name">鸿儒中医 · 体质报告</span><span class="line"></span></div>
+  </div><div class="result-body">`;
+
+  // Scores
+  h += `<div class="r-card"><div class="report-header"><div class="rh-seal">鸿儒</div><div class="rh-text"><h3>九种体质得分总览</h3><p>HongRu TCM · Constitution Score Overview</p></div></div>`;
+  for (const r of results) {
+    const pct=Math.min(Math.max(r.tf,0),100);
+    let bc='#4caf50',tc='tag-no',tt='否';
+    if(r.result==="是"){bc='#e53935';tc='tag-yes';tt='是';}
+    else if(r.result==="倾向是"){bc='#ff9800';tc='tag-tend';tt='倾向';}
+    else if(r.result==="基本是"){bc='#2196f3';tc='tag-tend';tt='基本是';}
+    h+=`<div class="score-row"><span class="score-label">${r.icon}${r.name}</span><div class="score-bar-bg"><div class="score-bar-fg" style="width:${pct}%;background:${bc}"></div></div><span class="score-val">${r.tf}</span><span class="score-tag ${tc}">${tt}</span></div>`;
+  }
+  h += `</div>`;
+
+  // Quick advice
+  h += `<div class="r-card"><div class="report-header"><div class="rh-seal">鸿儒</div><div class="rh-text"><h3>鸿儒中医 · 调养建议</h3><p>HongRu TCM · Wellness Recommendations</p></div></div>`;
+  h += `<p style="font-size:14px;line-height:1.8">${pInfo.advice}</p>`;
+  if (pos.length>1) {
+    h += `<p style="font-size:13px;color:var(--text-light);margin-top:10px">您还存在 <strong>${pos.slice(1).map(p=>p.name).join('、')}</strong> 的偏颇倾向，鸿儒中医建议您综合调养。</p>`;
+  }
+  h += `<p style="font-size:11px;color:var(--accent);margin-top:12px;font-style:italic">— 鸿儒中医 · 以上为基础调养方向，完整方案请获取个性化报告</p>`;
+  h += `</div>`;
+
+  // ===== SERVICE FUNNEL =====
+  h += `</div><div class="funnel"><div class="funnel-title">🎯 鸿儒中医 · 更多专属服务</div>`;
+
+  h += `<div class="service-card featured" onclick="openService('report')">
+    <div class="s-icon">📑</div>
+    <h4>鸿儒中医 · 完整个性化体质报告</h4>
+    <p>由鸿儒中医师团队专业出品，包含：详细体质解读 · 食疗方3份 · 穴位推荐 · 节气养生指南 · 运动建议 · 疾病风险提示</p>
+    <span class="price">⭐ 50 Stars / $5</span>
+  </div>`;
+
+  h += `<div class="service-card" onclick="openService('channel')">
+    <div class="s-icon">📢</div>
+    <h4>鸿儒养生频道（月度订阅）</h4>
+    <p>鸿儒中医独家内容：每个节气推送专属体质养生方案 · 时令食疗方 · 每月线上答疑 · 会员专属穴位教学</p>
+    <span class="price">⭐ 150 Stars/月</span>
+  </div>`;
+
+  h += `<div class="service-card" onclick="openService('consult')">
+    <div class="s-icon">👨‍⚕️</div>
+    <h4>鸿儒中医师 · 一对一体质咨询</h4>
+    <p>鸿儒中医创始人亲自解读您的体质报告 · 定制个人调养方案 · 30分钟语音/文字深度咨询</p>
+    <span class="price">⭐ 200 Stars / $20</span>
+  </div>`;
+
+  h += `<div class="service-card" onclick="openService('free')">
+    <div class="s-icon">🎁</div>
+    <h4>鸿儒好礼 · 免费节气养生日历</h4>
+    <p>关注鸿儒中医频道即可免费获取二十四节气养生电子日历，涵盖饮食、起居、运动、情志全方位指导。</p>
+    <span class="free-tag">免费 FREE</span>
+  </div>`;
+
+  h += `</div>`;
+
+  // Contact
+  h += `<div class="contact-bar">
+    <p style="font-family:'STKaiti','KaiTi',serif;font-size:15px;color:var(--primary);margin-bottom:4px;font-weight:600">鸿儒中医 · 治未病 · 养天年</p>
+    <p>关注鸿儒中医，开启您的体质养生之旅</p>
+    <div class="contact-links">
+      <a class="contact-link tg" href="https://t.me/+vVKdXqueX8xjYmNl" target="_blank">📱 鸿儒Telegram</a>
+      <a class="contact-link wa" href="https://wa.me/16263429419" target="_blank">💬 鸿儒WhatsApp</a>
+    </div>
+  </div>`;
+
+  h += `<div class="disclaimer">⚠️ 本测评由<strong>鸿儒中医</strong>出品，基于中华人民共和国国家标准 GB/T 46939—2025《中医体质分类与判定》设计。仅供健康科普参考，不构成医疗诊断或治疗建议。如有健康问题请咨询专业医师。<br><br>Produced by <strong>HongRu TCM</strong>. Based on China National Standard GB/T 46939-2025. For health reference only, not medical diagnosis.<br><br><span style="font-family:'STKaiti','KaiTi',serif;color:var(--primary)">鸿儒中医 — 传承经典 · 守护健康</span></div>`;
+
+  const wrap = document.getElementById('results');
+  wrap.innerHTML = h;
+  wrap.style.display = 'block';
+  window.scrollTo({top:0,behavior:'smooth'});
+
+  // Animate score bars
+  setTimeout(()=>{
+    document.querySelectorAll('.score-bar-fg').forEach(el=>{
+      const w=el.style.width; el.style.width='0%';
+      setTimeout(()=>el.style.width=w, 50);
+    });
+  }, 200);
+
+  window._results = {primary, pInfo, results, pos, tend, ph};
+}
+
+function openService(type) {
+  const r = window._results;
+  let msg = '';
+  switch(type) {
+    case 'report':
+      msg = `【鸿儒中医】我想购买完整体质报告。\n我的主要体质是：${r.primary}\n\n[HongRu TCM] I would like the full constitution report.\nPrimary: ${r.pInfo.nameEn}`;
+      break;
+    case 'channel':
+      msg = `【鸿儒中医】我想加入鸿儒养生频道。\n我的体质是：${r.primary}`;
+      break;
+    case 'consult':
+      msg = `【鸿儒中医】我想预约鸿儒中医师一对一咨询。\n我的主要体质是：${r.primary}\n各项得分：${r.results.map(s=>s.name+' '+s.tf+'分').join('、')}`;
+      break;
+    case 'free':
+      msg = `【鸿儒中医】我想免费领取鸿儒节气养生日历。`;
+      break;
+  }
+
+  if (window.Telegram && window.Telegram.WebApp) {
+    try {
+      window.Telegram.WebApp.sendData(JSON.stringify({ type:'service_request', service:type, primary:r.primary, scores:r.results.map(s=>({n:s.name,s:s.tf,r:s.result})) }));
+      return;
+    } catch(e) {}
+  }
+
+  // Fallback
+  navigator.clipboard.writeText(msg).then(()=>{
+    alert('已复制到剪贴板！请回到 Telegram 或 WhatsApp 粘贴发送给鸿儒中医。\n\nCopied! Paste and send to HongRu TCM on Telegram or WhatsApp.');
+  }).catch(()=>{
+    alert(msg);
+  });
+}
+
+if (window.Telegram && window.Telegram.WebApp) {
+  window.Telegram.WebApp.ready();
+  window.Telegram.WebApp.expand();
+}
+</script>
+</body>
+</html>
