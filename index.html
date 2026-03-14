@@ -681,33 +681,33 @@ function showResults(results, ph, pos, tend) {
   h += `<p style="font-size:11px;color:var(--accent);margin-top:12px;font-style:italic">— 鸿儒中医 · 以上为基础调养方向，完整方案请获取个性化报告</p>`;
   h += `</div>`;
 
-  // ===== SERVICE FUNNEL =====
-  h += `</div><div class="funnel"><div class="funnel-title">🎯 鸿儒中医 · 更多专属服务</div>`;
+  // ===== SERVICE FUNNEL (ALL FREE) =====
+  h += `</div><div class="funnel"><div class="funnel-title">🎯 鸿儒中医 · 免费专属服务</div>`;
 
   h += `<div class="service-card featured" onclick="openService('report')">
     <div class="s-icon">📑</div>
     <h4>鸿儒中医 · 完整个性化体质报告</h4>
     <p>由鸿儒中医师团队专业出品，包含：详细体质解读 · 食疗方3份 · 穴位推荐 · 节气养生指南 · 运动建议 · 疾病风险提示</p>
-    <span class="price">⭐ 50 Stars / $5</span>
+    <span class="free-tag">🎁 限时免费领取</span>
   </div>`;
 
   h += `<div class="service-card" onclick="openService('channel')">
     <div class="s-icon">📢</div>
-    <h4>鸿儒养生频道（月度订阅）</h4>
-    <p>鸿儒中医独家内容：每个节气推送专属体质养生方案 · 时令食疗方 · 每月线上答疑 · 会员专属穴位教学</p>
-    <span class="price">⭐ 150 Stars/月</span>
+    <h4>鸿儒养生频道（免费加入）</h4>
+    <p>鸿儒中医独家内容：每个节气推送专属体质养生方案 · 时令食疗方 · 不定期线上答疑 · 穴位保健教学</p>
+    <span class="free-tag">免费订阅 FREE</span>
   </div>`;
 
   h += `<div class="service-card" onclick="openService('consult')">
     <div class="s-icon">👨‍⚕️</div>
-    <h4>鸿儒中医师 · 一对一体质咨询</h4>
-    <p>鸿儒中医创始人亲自解读您的体质报告 · 定制个人调养方案 · 30分钟语音/文字深度咨询</p>
-    <span class="price">⭐ 200 Stars / $20</span>
+    <h4>鸿儒中医师 · 体质咨询</h4>
+    <p>鸿儒中医师为您解读体质报告 · 解答养生疑问 · 提供个性化调养方向</p>
+    <span class="free-tag">免费咨询 FREE</span>
   </div>`;
 
   h += `<div class="service-card" onclick="openService('free')">
     <div class="s-icon">🎁</div>
-    <h4>鸿儒好礼 · 免费节气养生日历</h4>
+    <h4>鸿儒好礼 · 节气养生日历</h4>
     <p>关注鸿儒中医频道即可免费获取二十四节气养生电子日历，涵盖饮食、起居、运动、情志全方位指导。</p>
     <span class="free-tag">免费 FREE</span>
   </div>`;
@@ -744,22 +744,25 @@ function showResults(results, ph, pos, tend) {
 
 function openService(type) {
   const r = window._results;
+
+  // Channel join - go directly to Telegram
+  if (type === 'channel' || type === 'free') {
+    window.open('https://t.me/+vVKdXqueX8xjYmNl', '_blank');
+    return;
+  }
+
+  // Report and consult - go to WhatsApp with pre-filled message
   let msg = '';
   switch(type) {
     case 'report':
-      msg = `【鸿儒中医】我想购买完整体质报告。\n我的主要体质是：${r.primary}\n\n[HongRu TCM] I would like the full constitution report.\nPrimary: ${r.pInfo.nameEn}`;
-      break;
-    case 'channel':
-      msg = `【鸿儒中医】我想加入鸿儒养生频道。\n我的体质是：${r.primary}`;
+      msg = `【鸿儒中医】您好！我刚完成了体质测评，想领取完整体质报告。\n我的主要体质是：${r.primary}\n各项得分：${r.results.map(s=>s.name+' '+s.tf+'分').join('、')}\n\nHi! I just finished the TCM assessment and would like my full report.\nPrimary: ${r.pInfo.nameEn}`;
       break;
     case 'consult':
-      msg = `【鸿儒中医】我想预约鸿儒中医师一对一咨询。\n我的主要体质是：${r.primary}\n各项得分：${r.results.map(s=>s.name+' '+s.tf+'分').join('、')}`;
-      break;
-    case 'free':
-      msg = `【鸿儒中医】我想免费领取鸿儒节气养生日历。`;
+      msg = `【鸿儒中医】您好！我想咨询关于我的体质调养方案。\n我的主要体质是：${r.primary}\n各项得分：${r.results.map(s=>s.name+' '+s.tf+'分').join('、')}\n\nHi! I'd like to consult about my constitution wellness plan.\nPrimary: ${r.pInfo.nameEn}`;
       break;
   }
 
+  // Try Telegram WebApp first
   if (window.Telegram && window.Telegram.WebApp) {
     try {
       window.Telegram.WebApp.sendData(JSON.stringify({ type:'service_request', service:type, primary:r.primary, scores:r.results.map(s=>({n:s.name,s:s.tf,r:s.result})) }));
@@ -767,12 +770,9 @@ function openService(type) {
     } catch(e) {}
   }
 
-  // Fallback
-  navigator.clipboard.writeText(msg).then(()=>{
-    alert('已复制到剪贴板！请回到 Telegram 或 WhatsApp 粘贴发送给鸿儒中医。\n\nCopied! Paste and send to HongRu TCM on Telegram or WhatsApp.');
-  }).catch(()=>{
-    alert(msg);
-  });
+  // Default: open WhatsApp with pre-filled message
+  const waUrl = 'https://wa.me/16263429419?text=' + encodeURIComponent(msg);
+  window.open(waUrl, '_blank');
 }
 
 if (window.Telegram && window.Telegram.WebApp) {
