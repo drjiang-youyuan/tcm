@@ -193,7 +193,7 @@
 
   /* Score bars */
   .score-row { display: flex; align-items: center; margin-bottom: 10px; }
-  .score-label { width: 56px; font-size: 12.5px; font-weight: 600; flex-shrink: 0; }
+  .score-label { width: 90px; font-size: 11.5px; font-weight: 600; flex-shrink: 0; line-height: 1.3; }
   .score-bar-bg { flex: 1; height: 22px; background: #f0f0f0; border-radius: 11px; overflow: hidden; margin: 0 8px; position: relative; }
   .score-bar-fg { height: 100%; border-radius: 11px; transition: width 1s cubic-bezier(0.4,0,0.2,1); position: relative; }
   .score-val { width: 36px; text-align: right; font-size: 13px; font-weight: 700; flex-shrink: 0; }
@@ -253,6 +253,63 @@
     font-size: 11px; color: var(--text-light); text-align: center;
     padding: 20px 16px; line-height: 1.7; border-top: 1px solid var(--border); margin-top: 12px;
   }
+
+  /* ===== SHARE CARD ===== */
+  .share-card {
+    margin: 16px; border-radius: 20px; overflow: hidden; position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+  }
+  .share-card-bg {
+    padding: 32px 24px 24px; color: white; text-align: center; position: relative;
+  }
+  .share-card-bg::after {
+    content:''; position:absolute; bottom:0; left:0; right:0; height:60px;
+    background: linear-gradient(transparent, rgba(0,0,0,0.15));
+  }
+  .share-card .sc-emoji { font-size: 56px; margin-bottom: 8px; position: relative; z-index: 1; }
+  .share-card .sc-nick { font-size: 28px; font-weight: 800; position: relative; z-index: 1; letter-spacing: 2px; }
+  .share-card .sc-name { font-size: 14px; opacity: 0.85; margin-top: 4px; position: relative; z-index: 1; }
+  .share-card .sc-tagline {
+    font-size: 15px; margin-top: 14px; padding: 8px 18px; position: relative; z-index: 1;
+    background: rgba(255,255,255,0.2); border-radius: 20px; display: inline-block;
+    backdrop-filter: blur(4px); line-height: 1.5;
+  }
+  .share-card-body { background: white; padding: 20px 24px; }
+  .share-card-body .sc-desc { font-size: 14px; line-height: 1.8; color: var(--text); margin-bottom: 16px; }
+  .share-card-body .sc-tips { list-style: none; padding: 0; }
+  .share-card-body .sc-tips li {
+    font-size: 13px; line-height: 1.7; padding: 8px 0; border-bottom: 1px solid #f5f5f5;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .share-card-body .sc-tips li:last-child { border-bottom: none; }
+  .share-card-body .sc-tips .tip-icon { flex-shrink: 0; font-size: 16px; }
+  .share-card-footer {
+    background: #f8f8f8; padding: 14px 24px; display: flex; justify-content: space-between;
+    align-items: center; border-top: 1px solid #eee;
+  }
+  .share-card-footer .sc-brand {
+    font-family: "STKaiti","KaiTi",serif; font-size: 13px; color: var(--primary); font-weight: 600;
+  }
+  .share-card-footer .sc-link { font-size: 11px; color: var(--text-light); }
+
+  .share-actions { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+  .share-btn-main {
+    width: 100%; padding: 15px; border: none; border-radius: 12px;
+    background: linear-gradient(135deg, #25d366, #128c7e); color: white;
+    font-size: 16px; font-weight: 600; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; gap: 8px;
+  }
+  .share-btn-copy {
+    width: 100%; padding: 13px; border: 2px solid var(--primary); border-radius: 12px;
+    background: white; color: var(--primary); font-size: 15px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .share-btn-screenshot {
+    width: 100%; padding: 13px; border: 2px solid var(--accent); border-radius: 12px;
+    background: white; color: var(--accent); font-size: 15px; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .share-hint { text-align: center; font-size: 12px; color: var(--text-light); padding: 0 16px 8px; }
 
   .hidden { display: none !important; }
 
@@ -342,75 +399,111 @@
 const DATA = {
   sections: [
     { id:"pinghe", name:"平和质", nameEn:"Balanced", icon:"☯️", color:"#2d6a4f",
-      desc:"阴阳气血调和，体态适中、面色红润、精力充沛", descEn:"Balanced constitution with good energy and adaptability",
-      advice:"保持均衡饮食和规律作息，适量运动，维持良好的生活习惯即可。",
-      items:[
+      nick:"天选之子", nickEn:"The Natural",
+      tagline:"身体的优等生，老天赏饭吃的体质",
+      funDesc:"恭喜你！你就是传说中别人羡慕的那种人——吃得好睡得香，精力充沛不怕冷不怕热，连感冒都很少找上你。",
+      descEn:"Congratulations! You have a naturally balanced constitution — good energy, sound sleep, and strong adaptability.",
+      tips:["继续保持规律作息，别作就不会病","饮食均衡就好，不用刻意进补","适量运动，散步、游泳、瑜伽都可以"],
+      tipsEn:["Keep your regular routine — if it ain't broke, don't fix it","Eat balanced meals, no special supplements needed","Stay active with walking, swimming, or yoga"],
+      emoji:"💪", items:[
         {q:"您精力充沛吗？",en:"Do you feel energetic?",r:false},
         {q:"您容易疲乏吗？",en:"Do you get tired easily?",r:true},
         {q:"您感到闷闷不乐、情绪低沉吗？",en:"Do you feel gloomy or depressed?",r:true},
         {q:"您比一般人耐受不了寒冷（冬天的寒冷，夏天的冷空调、电扇等）吗？",en:"Are you more intolerant to cold than others?",r:true},
     ]},
     { id:"qixu", name:"气虚质", nameEn:"Qi Deficiency", icon:"💨", color:"#5b9bd5",
-      desc:"元气不足，容易疲乏、气短、自汗", descEn:"Insufficient vital energy, prone to fatigue and shortness of breath",
-      advice:"宜食山药、红枣、小米等补气食材；避免过度劳累；推荐太极拳、八段锦等柔和运动。",
-      items:[
+      nick:"电量不足型", nickEn:"Low Battery Mode",
+      tagline:"随时需要充电的人，一累就想躺平",
+      funDesc:"你就像一部电量总在20%的手机——干什么都觉得累，爬个楼梯就喘，说话声音都不大。不是你懒，是你的身体「电池容量」偏小。",
+      descEn:"You're like a phone stuck at 20% — easily tired, short of breath after stairs, soft-spoken. It's not laziness, your body's battery capacity is just smaller.",
+      tips:["山药小米粥是你的充电宝，常吃","别逞强，累了就休息，硬撑反而更虚","太极拳、八段锦比跑步更适合你"],
+      tipsEn:["Yam & millet porridge is your power bank — eat it often","Don't push through fatigue, rest when tired","Tai chi & Qigong suit you better than running"],
+      emoji:"🔋", items:[
         {q:"您容易疲乏吗？",en:"Do you get tired easily?",r:false},
         {q:"您容易气短（呼吸短促，接不上气）吗？",en:"Do you easily feel short of breath?",r:false},
         {q:"您容易心慌吗？",en:"Do you easily feel palpitations?",r:false},
     ]},
     { id:"yangxu", name:"阳虚质", nameEn:"Yang Deficiency", icon:"❄️", color:"#4472c4",
-      desc:"阳气不足，畏寒怕冷、手足不温", descEn:"Insufficient yang energy, fear of cold, cold extremities",
-      advice:"宜食羊肉、生姜、桂圆等温阳食材；注意腰腹和足部保暖；忌食生冷寒凉之物。",
-      items:[
+      nick:"怕冷星人", nickEn:"Always Cold",
+      tagline:"空调是天敌，暖宝宝是真爱",
+      funDesc:"别人穿短袖你穿外套，别人吹空调你裹毯子。你的身体像一个火力不足的小暖炉，需要经常添柴加火。",
+      descEn:"Others wear t-shirts while you need a jacket. Your body is like a furnace running low on fuel — always needing warmth.",
+      tips:["姜茶、羊肉汤是你的好朋友","冰水冷饮是你的敌人，真的别碰","重点保暖腰腹和脚，泡脚是最好的投资"],
+      tipsEn:["Ginger tea & lamb soup are your best friends","Ice water & cold drinks are your enemy — seriously","Keep your lower back and feet warm, foot baths are gold"],
+      emoji:"🧣", items:[
         {q:"您胃脘部、背部或腰膝部怕冷吗？",en:"Do you feel cold in your stomach, back, or knees?",r:false},
         {q:"您感到怕冷、衣服比别人穿得多吗？",en:"Do you feel cold and wear more than others?",r:false},
         {q:"您比一般人耐受不了寒冷（冬天的寒冷，夏天的冷空调、电扇等）吗？",en:"Are you more intolerant to cold than others?",r:false},
     ]},
     { id:"yinxu", name:"阴虚质", nameEn:"Yin Deficiency", icon:"🔥", color:"#ed7d31",
-      desc:"阴液亏少，口燥咽干、手足心热", descEn:"Insufficient yin fluid, dry mouth, warm palms and soles",
-      advice:"宜食银耳、百合、鸭肉等滋阴食材；避免熬夜；忌食辛辣燥热之物。",
-      items:[
+      nick:"自带暖气型", nickEn:"Running Hot",
+      tagline:"手心发热口干舌燥，身体像缺水的花",
+      funDesc:"你的身体像一盆缺水的花——嘴巴干、皮肤干、手心热、晚上容易睡不踏实。你需要的不是降火，而是给身体「浇水」。",
+      descEn:"Your body is like a flower short on water — dry mouth, dry skin, warm palms, restless sleep. You don't need to cool down, you need to hydrate from within.",
+      tips:["银耳百合雪梨汤，润燥神器","熬夜是你最大的敌人，早睡比啥补品都管用","少吃辛辣烧烤，多吃水果蔬菜"],
+      tipsEn:["Snow fungus & pear soup is your hydration hero","Late nights are your worst enemy — sleep early beats any supplement","Less spicy food, more fruits & vegetables"],
+      emoji:"💧", items:[
         {q:"您感觉身体、脸上发热吗？",en:"Do you feel heat in your body or face?",r:false},
         {q:"您皮肤或口唇干吗？",en:"Is your skin or lips dry?",r:false},
         {q:"您面部两颧潮红或偏红吗？",en:"Are your cheeks flushed or reddish?",r:false},
     ]},
     { id:"tanshi", name:"痰湿质", nameEn:"Phlegm-Dampness", icon:"💧", color:"#7c878e",
-      desc:"痰湿凝聚，形体肥胖、腹部肥满、口黏苔腻", descEn:"Phlegm-dampness accumulation, obesity, sticky mouth",
-      advice:"宜食薏仁、冬瓜、赤小豆等祛湿食材；坚持有氧运动；少食甜腻油炸。",
-      items:[
+      nick:"湿气重型", nickEn:"Waterlogged",
+      tagline:"身体里住了个水库，总觉得沉重黏腻",
+      funDesc:"你的身体就像一块吸饱水的海绵——总觉得沉、不清爽、肚子软软的、嘴巴黏黏的。不是你胖，是你身体里的「湿气」太多了。",
+      descEn:"Your body is like a waterlogged sponge — heavy, sluggish, bloated belly, sticky mouth. It's not fat, it's excess dampness.",
+      tips:["薏米红豆水每天喝，排湿利器","甜食和油炸是湿气的好朋友，少碰","每天出点汗，跑步游泳都行，把湿气排出去"],
+      tipsEn:["Barley & red bean water daily — your dampness drainer","Sweets & fried food feed dampness — cut back","Break a sweat daily — running or swimming to flush it out"],
+      emoji:"🧽", items:[
         {q:"您感到身体沉重不轻松或不爽快吗？",en:"Does your body feel heavy or uncomfortable?",r:false},
         {q:"您腹部肥满松软吗？",en:"Is your abdomen soft and plump?",r:false},
         {q:"您嘴里有黏黏的感觉吗？",en:"Does your mouth feel sticky?",r:false},
     ]},
     { id:"shire", name:"湿热质", nameEn:"Damp-Heat", icon:"🌡️", color:"#c0392b",
-      desc:"湿热内蕴，面垢油光、口苦、苔黄腻", descEn:"Internal damp-heat, oily face, bitter taste",
-      advice:"宜食绿豆、苦瓜、莲子等清热利湿食材；忌食辛辣油腻和烟酒。",
-      items:[
+      nick:"自带油田型", nickEn:"Oil & Fire",
+      tagline:"脸上出油嘴里发苦，体内又湿又热",
+      funDesc:"你的身体像一个又潮又闷的房间——脸爱出油、容易长痘、嘴里发苦、小便偏黄。你需要做的是给身体「通风除湿」。",
+      descEn:"Your body is like a stuffy, humid room — oily face, acne-prone, bitter taste, dark urine. You need to ventilate and dehumidify from inside.",
+      tips:["绿豆汤、苦瓜是你的灭火器","烟酒辛辣火锅是火上浇油，忍忍吧","少熬夜少焦虑，心平气和湿热自退"],
+      tipsEn:["Mung bean soup & bitter melon are your fire extinguisher","Alcohol, spicy food & hotpot are adding fuel to the fire","Less stress, less late nights — calm mind cools the body"],
+      emoji:"🧯", items:[
         {q:"您面部或鼻部有油腻感或者油亮发光吗？",en:"Does your face or nose feel oily?",r:false},
         {q:"您小便时尿道有发热感、尿色浓（深）吗？",en:"Do you feel heat when urinating or is urine dark?",r:false},
         {q:"您带下色黄（白带颜色发黄）吗？",en:"Is your vaginal discharge yellowish?",g:"female",r:false},
         {q:"您的阴囊部位潮湿吗？",en:"Does your scrotum feel damp?",g:"male",r:false},
     ]},
     { id:"xueyu", name:"血瘀质", nameEn:"Blood Stasis", icon:"🩸", color:"#8e44ad",
-      desc:"血行不畅，肤色晦暗、舌质紫暗", descEn:"Poor blood flow, dull complexion, dark tongue",
-      advice:"宜食山楂、黑木耳、醋等活血食材；坚持适度运动促进血液循环。",
-      items:[
+      nick:"循环不畅型", nickEn:"Slow Flow",
+      tagline:"血管里的交通堵塞，皮肤暗沉爱长斑",
+      funDesc:"你的血液循环就像早高峰的马路——堵着不通畅。表现就是肤色暗、嘴唇紫、容易长斑、身上老是这疼那疼。",
+      descEn:"Your blood flow is like rush hour traffic — blocked and sluggish. Signs: dull skin, dark lips, spots, and random aches.",
+      tips:["山楂泡水喝，天然的疏通剂","久坐是大忌，每小时起来动一动","黑木耳、醋、红酒（少量）帮助活血"],
+      tipsEn:["Hawthorn berry tea — nature's circulation booster","Sitting too long is your enemy, move every hour","Black fungus, vinegar & small amounts of red wine help flow"],
+      emoji:"🚦", items:[
         {q:"您身体上有哪里疼痛吗？",en:"Do you experience pain anywhere?",r:false},
         {q:"您面色晦暗或容易出现褐斑吗？",en:"Is your complexion dull or do you have dark spots?",r:false},
         {q:"您口唇颜色偏暗吗？",en:"Are your lips dark-colored?",r:false},
     ]},
     { id:"qiyu", name:"气郁质", nameEn:"Qi Stagnation", icon:"🌫️", color:"#34495e",
-      desc:"气机郁滞，神情抑郁、忧虑脆弱", descEn:"Qi stagnation, depression, anxiety, emotional fragility",
-      advice:"宜食玫瑰花茶、佛手、柑橘等理气食材；多参加社交和户外活动；学会情绪疏导。",
-      items:[
+      nick:"情绪敏感型", nickEn:"Overthinker",
+      tagline:"心思比头发还细，容易想太多",
+      funDesc:"你的心灵就像一根紧绷的弦——容易焦虑、想太多、动不动就叹气、有时候莫名其妙就不开心。你不是矫情，是你的身体在呼唤疏导。",
+      descEn:"Your mind is like a tightly wound string — anxious, overthinking, frequent sighing. You're not dramatic, your body is asking for emotional release.",
+      tips:["玫瑰花茶、茉莉花茶是你的心灵马杀鸡","别总一个人闷着，找朋友聊天比吃药管用","跑步、跳舞、唱歌——任何让你出汗+开心的事"],
+      tipsEn:["Rose & jasmine tea — a massage for your mood","Don't bottle it up — talking to friends beats medicine","Running, dancing, singing — anything that makes you sweat AND smile"],
+      emoji:"🎭", items:[
         {q:"您感到闷闷不乐、情绪低沉吗？",en:"Do you feel gloomy or depressed?",r:false},
         {q:"您容易精神紧张、焦虑不安吗？",en:"Do you easily feel nervous or anxious?",r:false},
         {q:"您多愁善感、感情脆弱吗？",en:"Are you sentimental or emotionally fragile?",r:false},
     ]},
     { id:"tebing", name:"特禀质", nameEn:"Allergic", icon:"🤧", color:"#e67e22",
-      desc:"禀赋不耐，容易过敏", descEn:"Innate intolerance, allergy prone",
-      advice:"注意避开已知过敏原；换季时加强防护；宜食灵芝、蜂蜜等增强体质的食材。",
-      items:[
+      nick:"过敏星人", nickEn:"Allergy Alert",
+      tagline:"花粉的宿敌，换季的噩梦",
+      funDesc:"你的免疫系统就像一个过度敏感的保安——动不动就拉响警报。花粉、灰尘、换季变天，都能让你喷嚏连连、浑身痒痒。",
+      descEn:"Your immune system is like an overreactive security guard — sounding alarms at everything. Pollen, dust, weather changes all trigger sneezes and itches.",
+      tips:["出门戴口罩不丢人，过敏原能避就避","换季前提前调理，别等发作了才后悔","规律作息增强免疫力，是最根本的解决方案"],
+      tipsEn:["Wearing a mask outside is smart, avoid allergens when possible","Prepare before season changes, don't wait for flare-ups","Regular sleep schedule to boost immunity — the real long-term fix"],
+      emoji:"🛡️", items:[
         {q:"您没有感冒时也会打喷嚏吗？",en:"Do you sneeze even without a cold?",r:false},
         {q:"您容易过敏（对药物、食物、气味、花粉或在季节交替、气候变化时）吗？",en:"Are you prone to allergies?",r:false},
         {q:"您的皮肤容易起荨麻疹（风团、风疹块、风疙瘩）吗？",en:"Does your skin easily develop hives?",r:false},
@@ -647,74 +740,105 @@ function showResults(results, ph, pos, tend) {
   document.getElementById('progressWrap').classList.add('hidden');
 
   let primary, pInfo;
-  if (ph.result==="是"||ph.result==="基本是") { pInfo=ph; primary=(ph.result==="是"?"":"基本")+"\u5e73\u548c\u8d28"; }
+  if (ph.result==="是"||ph.result==="基本是") { pInfo=ph; primary=(ph.result==="是"?"":"基本")+"平和质"; }
   else if (pos.length>0) { pInfo=pos[0]; primary=pos[0].name; }
   else if (tend.length>0) { pInfo=tend[0]; primary=tend[0].name+"（倾向）"; }
-  else { pInfo=ph; primary="\u5e73\u548c\u8d28"; }
+  else { pInfo=ph; primary="平和质"; }
 
-  let h = `<div class="result-hero">
-    <div class="big-emoji">${pInfo.icon}</div>
-    <h2>${primary}</h2>
-    <div class="type-en">${pInfo.nameEn}</div>
-    <div class="desc">${pInfo.desc}</div>
-    <div class="result-brand-bar"><span class="line"></span><span class="brand-name">鸿儒中医 · 体质报告</span><span class="line"></span></div>
-  </div><div class="result-body">`;
+  const tipIcons = ['🍵','🧘','🍎','💤','☕','🏋️'];
 
-  // Scores
-  h += `<div class="r-card"><div class="report-header"><div class="rh-seal">鸿儒</div><div class="rh-text"><h3>九种体质得分总览</h3><p>HongRu TCM · Constitution Score Overview</p></div></div>`;
+  // ========== 1. SHAREABLE CARD (截图分享区) ==========
+  let h = `<div class="share-card" id="shareCard">
+    <div class="share-card-bg" style="background:linear-gradient(135deg, ${pInfo.color}, ${pInfo.color}dd, ${pInfo.color}99)">
+      <div class="sc-emoji">${pInfo.emoji || pInfo.icon}</div>
+      <div class="sc-nick">${pInfo.nick}</div>
+      <div class="sc-name">${pInfo.name} · ${pInfo.nameEn}</div>
+      <div class="sc-tagline">${pInfo.tagline}</div>
+    </div>
+    <div class="share-card-body">
+      <div class="sc-desc">${pInfo.funDesc}</div>
+      <ul class="sc-tips">`;
+  pInfo.tips.forEach((tip, i) => {
+    h += `<li><span class="tip-icon">${tipIcons[i % tipIcons.length]}</span>${tip}</li>`;
+  });
+  h += `</ul></div>
+    <div class="share-card-footer">
+      <span class="sc-brand">鸿儒中医 · 体质辨识</span>
+      <span class="sc-link">👉 drjiang-youyuan.github.io/tcm</span>
+    </div>
+  </div>`;
+
+  // ========== 2. SHARE BUTTONS ==========
+  h += `<div class="share-hint">👆 长按上方卡片截图，分享给朋友看看你是什么体质！</div>`;
+  h += `<div class="share-actions">
+    <button class="share-btn-main" onclick="shareNative()">📤 分享给朋友 Share with Friends</button>
+    <button class="share-btn-copy" onclick="copyShareText()">📋 复制分享文案 Copy Text</button>
+  </div>`;
+
+  // ========== 3. SCORE DETAIL (得分详情) ==========
+  h += `<div class="result-body" style="padding:16px">`;
+  h += `<div class="r-card"><div class="report-header"><div class="rh-seal">鸿儒</div><div class="rh-text"><h3>九种体质得分总览</h3><p>HongRu TCM · Full Score Breakdown</p></div></div>`;
   for (const r of results) {
-    const pct=Math.min(Math.max(r.tf,0),100);
-    let bc='#4caf50',tc='tag-no',tt='否';
-    if(r.result==="是"){bc='#e53935';tc='tag-yes';tt='是';}
-    else if(r.result==="倾向是"){bc='#ff9800';tc='tag-tend';tt='倾向';}
-    else if(r.result==="基本是"){bc='#2196f3';tc='tag-tend';tt='基本是';}
-    h+=`<div class="score-row"><span class="score-label">${r.icon}${r.name}</span><div class="score-bar-bg"><div class="score-bar-fg" style="width:${pct}%;background:${bc}"></div></div><span class="score-val">${r.tf}</span><span class="score-tag ${tc}">${tt}</span></div>`;
+    const pct = Math.min(Math.max(r.tf,0),100);
+    let bc='#4caf50', tc='tag-no', tt='否';
+    if(r.result==="是"){ bc='#e53935'; tc='tag-yes'; tt='是'; }
+    else if(r.result==="倾向是"){ bc='#ff9800'; tc='tag-tend'; tt='倾向'; }
+    else if(r.result==="基本是"){ bc='#2196f3'; tc='tag-tend'; tt='基本是'; }
+    h += `<div class="score-row"><span class="score-label">${r.emoji||r.icon} ${r.nick||r.name}</span><div class="score-bar-bg"><div class="score-bar-fg" style="width:${pct}%;background:${bc}"></div></div><span class="score-val">${r.tf}</span><span class="score-tag ${tc}">${tt}</span></div>`;
   }
   h += `</div>`;
 
-  // Quick advice
-  h += `<div class="r-card"><div class="report-header"><div class="rh-seal">鸿儒</div><div class="rh-text"><h3>鸿儒中医 · 调养建议</h3><p>HongRu TCM · Wellness Recommendations</p></div></div>`;
-  h += `<p style="font-size:14px;line-height:1.8">${pInfo.advice}</p>`;
-  if (pos.length>1) {
-    h += `<p style="font-size:13px;color:var(--text-light);margin-top:10px">您还存在 <strong>${pos.slice(1).map(p=>p.name).join('、')}</strong> 的偏颇倾向，鸿儒中医建议您综合调养。</p>`;
+  // ========== 4. COLLOQUIAL ADVICE (通俗建议) ==========
+  h += `<div class="r-card"><div class="report-header"><div class="rh-seal">鸿儒</div><div class="rh-text"><h3>鸿儒中医 · 调养锦囊</h3><p>HongRu TCM · Wellness Tips</p></div></div>`;
+  h += `<p style="font-size:15px;font-weight:600;margin-bottom:10px">${pInfo.emoji} 「${pInfo.nick}」的日常调养：</p>`;
+  h += `<ul style="list-style:none;padding:0">`;
+  pInfo.tips.forEach((tip, i) => {
+    h += `<li style="font-size:14px;line-height:1.8;padding:6px 0;display:flex;gap:8px"><span>${tipIcons[i%tipIcons.length]}</span>${tip}</li>`;
+  });
+  h += `</ul>`;
+  if (pInfo.tipsEn) {
+    h += `<p style="font-size:12px;color:var(--text-light);margin-top:14px;border-top:1px solid #f0f0f0;padding-top:12px"><strong>English Tips:</strong></p>`;
+    h += `<ul style="list-style:none;padding:0">`;
+    pInfo.tipsEn.forEach((tip, i) => {
+      h += `<li style="font-size:12.5px;line-height:1.7;padding:4px 0;color:var(--text-light);display:flex;gap:8px"><span>${tipIcons[i%tipIcons.length]}</span>${tip}</li>`;
+    });
+    h += `</ul>`;
   }
-  h += `<p style="font-size:11px;color:var(--accent);margin-top:12px;font-style:italic">— 鸿儒中医 · 以上为基础调养方向，完整方案请获取个性化报告</p>`;
+  if (pos.length > 1) {
+    h += `<p style="font-size:13px;color:var(--text-light);margin-top:14px;padding-top:12px;border-top:1px solid #f0f0f0">您还有 <strong>${pos.slice(1).map(p => p.nick || p.name).join('、')}</strong> 的倾向，鸿儒中医建议综合调养。</p>`;
+  }
+  h += `<p style="font-size:11px;color:var(--accent);margin-top:12px;font-style:italic">— 鸿儒中医 · 以上为基础调养方向，更详细的个性化方案欢迎咨询</p>`;
   h += `</div>`;
 
-  // ===== SERVICE FUNNEL (ALL FREE) =====
+  // ========== 5. SERVICE FUNNEL ==========
   h += `</div><div class="funnel"><div class="funnel-title">🎯 鸿儒中医 · 免费专属服务</div>`;
-
   h += `<div class="service-card featured" onclick="openService('report')">
     <div class="s-icon">📑</div>
     <h4>鸿儒中医 · 完整个性化体质报告</h4>
-    <p>由鸿儒中医师团队专业出品，包含：详细体质解读 · 食疗方3份 · 穴位推荐 · 节气养生指南 · 运动建议 · 疾病风险提示</p>
+    <p>专业中医师出品：详细体质解读 · 食疗方3份 · 穴位推荐 · 节气养生指南 · 运动建议 · 疾病风险提示</p>
     <span class="free-tag">🎁 限时免费领取</span>
   </div>`;
-
   h += `<div class="service-card" onclick="openService('channel')">
     <div class="s-icon">📢</div>
     <h4>鸿儒养生频道（免费加入）</h4>
-    <p>鸿儒中医独家内容：每个节气推送专属体质养生方案 · 时令食疗方 · 不定期线上答疑 · 穴位保健教学</p>
+    <p>每个节气推送专属养生方案 · 时令食疗方 · 不定期线上答疑 · 穴位保健教学</p>
     <span class="free-tag">免费订阅 FREE</span>
   </div>`;
-
   h += `<div class="service-card" onclick="openService('consult')">
     <div class="s-icon">👨‍⚕️</div>
     <h4>鸿儒中医师 · 体质咨询</h4>
-    <p>鸿儒中医师为您解读体质报告 · 解答养生疑问 · 提供个性化调养方向</p>
+    <p>解读体质报告 · 解答养生疑问 · 提供个性化调养方向</p>
     <span class="free-tag">免费咨询 FREE</span>
   </div>`;
-
   h += `<div class="service-card" onclick="openService('free')">
     <div class="s-icon">🎁</div>
     <h4>鸿儒好礼 · 节气养生日历</h4>
-    <p>关注鸿儒中医频道即可免费获取二十四节气养生电子日历，涵盖饮食、起居、运动、情志全方位指导。</p>
+    <p>关注频道即可免费获取二十四节气养生电子日历，涵盖饮食、起居、运动全方位指导。</p>
     <span class="free-tag">免费 FREE</span>
   </div>`;
-
   h += `</div>`;
 
-  // Contact
+  // ========== 6. CONTACT & DISCLAIMER ==========
   h += `<div class="contact-bar">
     <p style="font-family:'STKaiti','KaiTi',serif;font-size:15px;color:var(--primary);margin-bottom:4px;font-weight:600">鸿儒中医 · 治未病 · 养天年</p>
     <p>关注鸿儒中医，开启您的体质养生之旅</p>
@@ -723,56 +847,95 @@ function showResults(results, ph, pos, tend) {
       <a class="contact-link wa" href="https://wa.me/16263429419" target="_blank">💬 鸿儒WhatsApp</a>
     </div>
   </div>`;
-
-  h += `<div class="disclaimer">⚠️ 本测评由<strong>鸿儒中医</strong>出品，基于中华人民共和国国家标准 GB/T 46939—2025《中医体质分类与判定》设计。仅供健康科普参考，不构成医疗诊断或治疗建议。如有健康问题请咨询专业医师。<br><br>Produced by <strong>HongRu TCM</strong>. Based on China National Standard GB/T 46939-2025. For health reference only, not medical diagnosis.<br><br><span style="font-family:'STKaiti','KaiTi',serif;color:var(--primary)">鸿儒中医 — 传承经典 · 守护健康</span></div>`;
+  h += `<div class="disclaimer">⚠️ 本测评由<strong>鸿儒中医</strong>出品，基于中华人民共和国国家标准 GB/T 46939—2025《中医体质分类与判定》设计。仅供健康科普参考，不构成医疗诊断或治疗建议。如有健康问题请咨询专业医师。<br><br>Produced by <strong>HongRu TCM</strong>. Based on China National Standard GB/T 46939-2025. For health reference only.<br><br><span style="font-family:'STKaiti','KaiTi',serif;color:var(--primary)">鸿儒中医 — 传承经典 · 守护健康</span></div>`;
 
   const wrap = document.getElementById('results');
   wrap.innerHTML = h;
   wrap.style.display = 'block';
-  window.scrollTo({top:0,behavior:'smooth'});
+  window.scrollTo({top:0, behavior:'smooth'});
 
-  // Animate score bars
-  setTimeout(()=>{
-    document.querySelectorAll('.score-bar-fg').forEach(el=>{
-      const w=el.style.width; el.style.width='0%';
-      setTimeout(()=>el.style.width=w, 50);
+  setTimeout(() => {
+    document.querySelectorAll('.score-bar-fg').forEach(el => {
+      const w = el.style.width; el.style.width = '0%';
+      setTimeout(() => el.style.width = w, 50);
     });
   }, 200);
 
   window._results = {primary, pInfo, results, pos, tend, ph};
 }
 
+// ===== SHARE FUNCTIONS =====
+function getShareText() {
+  const r = window._results;
+  return `${r.pInfo.emoji} 我的中医体质是「${r.pInfo.nick}」（${r.pInfo.name}）
+
+${r.pInfo.tagline}
+
+${r.pInfo.funDesc}
+
+👉 测测你是什么体质：https://drjiang-youyuan.github.io/tcm/
+
+基于国家标准 GB/T 46939-2025，鸿儒中医出品`;
+}
+
+function shareNative() {
+  const text = getShareText();
+  if (navigator.share) {
+    navigator.share({ title: '我的中医体质测试结果 - 鸿儒中医', text: text, url: 'https://drjiang-youyuan.github.io/tcm/' }).catch(()=>{});
+  } else {
+    // Fallback: try WhatsApp
+    window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank');
+  }
+}
+
+function copyShareText() {
+  const text = getShareText();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.querySelector('.share-btn-copy');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✅ 已复制！去分享给朋友吧 Copied!';
+      btn.style.background = 'var(--primary-light)';
+      setTimeout(() => { btn.innerHTML = orig; btn.style.background = 'white'; }, 3000);
+    }).catch(() => { fallbackCopy(text); });
+  } else {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy');
+    const btn = document.querySelector('.share-btn-copy');
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✅ 已复制！去分享给朋友吧 Copied!';
+    btn.style.background = 'var(--primary-light)';
+    setTimeout(() => { btn.innerHTML = orig; btn.style.background = 'white'; }, 3000);
+  } catch(e) { alert(text); }
+  document.body.removeChild(ta);
+}
+
 function openService(type) {
   const r = window._results;
-
-  // Channel join - go directly to Telegram
   if (type === 'channel' || type === 'free') {
     window.open('https://t.me/+vVKdXqueX8xjYmNl', '_blank');
     return;
   }
-
-  // Report and consult - go to WhatsApp with pre-filled message
   let msg = '';
   switch(type) {
     case 'report':
-      msg = `【鸿儒中医】您好！我刚完成了体质测评，想领取完整体质报告。\n我的主要体质是：${r.primary}\n各项得分：${r.results.map(s=>s.name+' '+s.tf+'分').join('、')}\n\nHi! I just finished the TCM assessment and would like my full report.\nPrimary: ${r.pInfo.nameEn}`;
+      msg = `【鸿儒中医】您好！我刚完成了体质测评，想领取完整体质报告。\n我的主要体质是：${r.pInfo.nick}（${r.primary}）\n各项得分：${r.results.map(s=>(s.nick||s.name)+' '+s.tf+'分').join('、')}\n\nHi! I just finished the TCM assessment and would like my full report.\nPrimary: ${r.pInfo.nameEn}`;
       break;
     case 'consult':
-      msg = `【鸿儒中医】您好！我想咨询关于我的体质调养方案。\n我的主要体质是：${r.primary}\n各项得分：${r.results.map(s=>s.name+' '+s.tf+'分').join('、')}\n\nHi! I'd like to consult about my constitution wellness plan.\nPrimary: ${r.pInfo.nameEn}`;
+      msg = `【鸿儒中医】您好！我想咨询关于我的体质调养方案。\n我的主要体质是：${r.pInfo.nick}（${r.primary}）\n各项得分：${r.results.map(s=>(s.nick||s.name)+' '+s.tf+'分').join('、')}\n\nHi! I'd like to consult about my constitution wellness plan.\nPrimary: ${r.pInfo.nameEn}`;
       break;
   }
-
-  // Try Telegram WebApp first
   if (window.Telegram && window.Telegram.WebApp) {
-    try {
-      window.Telegram.WebApp.sendData(JSON.stringify({ type:'service_request', service:type, primary:r.primary, scores:r.results.map(s=>({n:s.name,s:s.tf,r:s.result})) }));
-      return;
-    } catch(e) {}
+    try { window.Telegram.WebApp.sendData(JSON.stringify({ type:'service_request', service:type, primary:r.primary, scores:r.results.map(s=>({n:s.name,s:s.tf,r:s.result})) })); return; } catch(e) {}
   }
-
-  // Default: open WhatsApp with pre-filled message
-  const waUrl = 'https://wa.me/16263429419?text=' + encodeURIComponent(msg);
-  window.open(waUrl, '_blank');
+  window.open('https://wa.me/16263429419?text=' + encodeURIComponent(msg), '_blank');
 }
 
 if (window.Telegram && window.Telegram.WebApp) {
